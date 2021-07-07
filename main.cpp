@@ -1,3 +1,5 @@
+
+#include "BestFitMemoryManager.h"
 #include "MemoryManager.h"
 #include "MemControlBlock.h"
 
@@ -11,6 +13,7 @@ int main(int argc, char** argv)
     UNUSED_VAR(argv);
 
     testMemControlBlock();
+    BestFitMemoryManager bestFit;
 
     return 0;
 }

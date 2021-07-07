@@ -3,9 +3,8 @@
 #include "MemoryManager.h"
 #include <unistd.h>
 
-MemoryManager::MemoryManager(size_t wordSize, allocator_t& allocator)
-    :   mWordSize(wordSize),
-        mAllocator(allocator)
+MemoryManager::MemoryManager(size_t wordSize)
+    :   mWordSize(wordSize)
 {
     MemControlBlock* mcb;
 
@@ -15,21 +14,24 @@ MemoryManager::MemoryManager(size_t wordSize, allocator_t& allocator)
     mFreeList.push_front(mcb);
 }
 
+#if 0
 MemoryManager::allocator_t MemoryManager::sWorstFit = 
     [](ssize_t numBytes, std::list<MemControlBlock*>& freeList) -> ssize_t 
     {
-        UNUSED_VAR(numBytes);
-        UNUSED_VAR(freeList);
-        return 0;
-    };
+        ssize_t currSmallestDiff {numBytes};
+        MemControlBlock* currBestFit {nullptr};
+        ssize_t thisDiff;
 
-MemoryManager::allocator_t MemoryManager::sBestFit = 
-    [](ssize_t numBytes, std::list<MemControlBlock*>& freeList) -> ssize_t 
-    {
-        UNUSED_VAR(numBytes);
-        UNUSED_VAR(freeList);
+        // numBytes = 
+
+        for (MemControlBlock*& mcb : freeList)
+        {
+            thisDiff = mcb->getSize() - numBytes;
+            // if (thisDiff > )
+        }
         return 0;
     };
+#endif
 
 MemoryManager::~MemoryManager()
 {
@@ -46,19 +48,9 @@ void MemoryManager::shutdown()
 
 }
 
-void* MemoryManager::alloc(size_t sizeInBytes)
-{
-    return reinterpret_cast<void*>(this->mAllocator(static_cast<ssize_t>(sizeInBytes), mFreeList));
-}
-
 void MemoryManager::free(void* address)
 {
     UNUSED_VAR(address);
-}
-
-void MemoryManager::setAllocator(allocator_t allocator)
-{
-    UNUSED_VAR(allocator);
 }
 
 int MemoryManager::dumpMemoryMap(const std::string &fileName)
