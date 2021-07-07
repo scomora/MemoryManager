@@ -27,10 +27,13 @@ class MemoryManager
         void* getMemoryStart();
         size_t getMemoryLimit();
 
+    protected:
+        size_t alignBytes(size_t numBytes);
+        std::list<MemControlBlock*> mFreeList;
+
     private:
         void* mMemStart;
         size_t mWordSize;
-        std::list<MemControlBlock*> mFreeList;
 
         static constexpr size_t INITIAL_HEAP_USER_SIZE_BYTES    = 65536UL;
         static constexpr size_t INITIAL_HEAP_SIZE_BYTES         = INITIAL_HEAP_USER_SIZE_BYTES 

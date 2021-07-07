@@ -35,6 +35,15 @@ MemControlBlock* MemControlBlock::getBlockFromAddress(void* address)
     return static_cast<MemControlBlock*>(controlBlockAddress);
 }
 
+void* MemControlBlock::getPayloadStartAddress()
+{
+    void* payloadStart;
+
+    payloadStart = static_cast<void*>(reinterpret_cast<char*>(this) + sizeof(MemControlBlock));
+
+    return payloadStart;
+}
+
 bool MemControlBlock::isFree()
 {
     return mFree;
@@ -43,6 +52,11 @@ bool MemControlBlock::isFree()
 size_t MemControlBlock::getSize()
 {
     return mSize;
+}
+
+void MemControlBlock::setSize(size_t size)
+{
+    mSize = size;
 }
 
 void MemControlBlock::setFree()

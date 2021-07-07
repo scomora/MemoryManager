@@ -22,20 +22,13 @@ constexpr size_t PAYLOAD_SIZE = sizeof(MemControlBlock) << 1;
 
 bool testMemControlBlock()
 {
-    MemControlBlock *mcb;
-    void *blockAddress;
+    BestFitMemoryManager bfmm;
+    void* heapMem;
 
-    void *payload = new char[PAYLOAD_SIZE];
-    mcb = static_cast<MemControlBlock*>(payload);
+    heapMem = bfmm.alloc(4);
 
-    std::memset(payload, 0, PAYLOAD_SIZE);
-    mcb->setFree();
-    blockAddress = mcb->getBlockFromAddress();
-
-    std::cout << "sizeof(mcb) = " << sizeof(MemControlBlock) << std::endl;
-
-    std::cout << "MCB address: " << static_cast<void*>(mcb) << std::endl;
-    std::cout << "Block address: " << blockAddress << std::endl;
+    std::cout << "got heap mem = " << heapMem << std::endl;
+    std::cout << "malloc(10) gives " << malloc(10) << std::endl;
 
     return false;
 }

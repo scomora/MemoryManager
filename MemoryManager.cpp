@@ -1,6 +1,8 @@
 
 #include "MemControlBlock.h"
 #include "MemoryManager.h"
+
+#include <memory>
 #include <unistd.h>
 
 MemoryManager::MemoryManager(size_t wordSize)
@@ -13,25 +15,6 @@ MemoryManager::MemoryManager(size_t wordSize)
     mcb->init(INITIAL_HEAP_USER_SIZE_BYTES);
     mFreeList.push_front(mcb);
 }
-
-#if 0
-MemoryManager::allocator_t MemoryManager::sWorstFit = 
-    [](ssize_t numBytes, std::list<MemControlBlock*>& freeList) -> ssize_t 
-    {
-        ssize_t currSmallestDiff {numBytes};
-        MemControlBlock* currBestFit {nullptr};
-        ssize_t thisDiff;
-
-        // numBytes = 
-
-        for (MemControlBlock*& mcb : freeList)
-        {
-            thisDiff = mcb->getSize() - numBytes;
-            // if (thisDiff > )
-        }
-        return 0;
-    };
-#endif
 
 MemoryManager::~MemoryManager()
 {
@@ -82,4 +65,9 @@ void* MemoryManager::getMemoryStart()
 size_t MemoryManager::getMemoryLimit()
 {
     return 0;
+}
+
+size_t MemoryManager::alignBytes(size_t numBytes)
+{
+    return ((numBytes + this->mWordSize - 1) & ~(this->mWordSize - 1));
 }
