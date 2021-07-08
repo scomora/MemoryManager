@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "MemControlBlock.h"
 #include "util.h"
 
@@ -42,6 +44,38 @@ void* MemControlBlock::getPayloadStartAddress()
     payloadStart = static_cast<void*>(reinterpret_cast<char*>(this) + sizeof(MemControlBlock));
 
     return payloadStart;
+}
+
+void* MemControlBlock::getPayloadEndAddress()
+{
+    return static_cast<char*>(this->getPayloadStartAddress()) + this->getSize();
+}
+
+/**
+ * split this memory block into two blocks: one of numBytes bytes
+ * and the other of
+ * the entire block's size - numBytes - mcb size
+ * 
+ * return the address of the succeeding block in the split, to
+ * be added to the free list
+ **/
+MemControlBlock* MemControlBlock::split(size_t numBytes)
+{
+    size_t newPrecedingBlockSize;
+    size_t succeedingBlockSize;
+    void* succeedingBlockAddress;
+    MemControlBlock* succeedingMcb;
+
+    newPrecedingBlockSize = numBytes;
+    succeedingBlockSize = this->getSize() - numBytes - sizeof(MemControlBlock);
+
+    this->setSize(newPrecedingBlockSize);
+
+    succeedingBlockAddress = static_cast<char*>(this->getPayloadEndAddress()) + 1;
+    succeedingMcb = reinterpret_cast<MemControlBlock*>(succeedingBlockAddress);
+    succeedingMcb->init(succeedingBlockSize);
+
+    return succeedingMcb;
 }
 
 bool MemControlBlock::isFree()

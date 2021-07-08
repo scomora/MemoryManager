@@ -24,11 +24,18 @@ bool testMemControlBlock()
 {
     BestFitMemoryManager bfmm;
     void* heapMem;
+    MemControlBlock* mcb;
+    size_t numAllocs {0};
 
     heapMem = bfmm.alloc(4);
 
-    std::cout << "got heap mem = " << heapMem << std::endl;
-    std::cout << "malloc(10) gives " << malloc(10) << std::endl;
+    for (; numAllocs < 1363; numAllocs++)
+    {
+        mcb = reinterpret_cast<MemControlBlock*>(bfmm.alloc(sizeof(MemControlBlock)));
+        mcb->init(sizeof(MemControlBlock));
+        std::cout << "got " << reinterpret_cast<void*>(mcb) << std::endl;
+    }
+    
 
     return false;
 }
