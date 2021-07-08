@@ -6,7 +6,8 @@
 #include <unistd.h>
 
 MemoryManager::MemoryManager(size_t wordSize)
-    :   mWordSize(wordSize)
+    :   mWordSize(wordSize),
+        mState(State::HEALTHY)
 {
     MemControlBlock* mcb;
 
@@ -19,6 +20,21 @@ MemoryManager::MemoryManager(size_t wordSize)
 MemoryManager::~MemoryManager()
 {
 
+}
+
+void MemoryManager::handleOutOfMemory()
+{
+    MemControlBlock* resultingFreeBlock;
+
+    resultingFreeBlock = reinterpret_cast<MemControlBlock*>(sbrk(INITIAL_HEAP_SIZE_BYTES));
+    if (resultingFreeBlock == reinterpret_cast<void*>(-1))
+    {
+        this->setState(State::OUT_OF_MEM);
+        return;
+    }
+
+    resultingFreeBlock->init(INITIAL_HEAP_USER_SIZE_BYTES);
+    this->mFreeList.push_front(resultingFreeBlock);
 }
 
 void MemoryManager::initialize(size_t sizeInWords)
@@ -54,7 +70,7 @@ void* MemoryManager::getBitMap()
 
 size_t MemoryManager::getWordSize()
 {
-    return 0;
+    return mWordSize;
 }
 
 void* MemoryManager::getMemoryStart()
@@ -70,4 +86,24 @@ size_t MemoryManager::getMemoryLimit()
 size_t MemoryManager::alignBytes(size_t numBytes)
 {
     return ((numBytes + this->mWordSize - 1) & ~(this->mWordSize - 1));
+}
+
+size_t MemoryManager::getMostRecentRequestSize()
+{
+    return mMostRecentRequestSize;
+}
+
+void MemoryManager::setMostRecentRequestSize(size_t mostRecentRequestSize)
+{
+    mMostRecentRequestSize = mostRecentRequestSize;
+}
+
+MemoryManager::State MemoryManager::getState()
+{
+    return mState;
+}
+
+void MemoryManager::setState(MemoryManager::State nextState)
+{
+    mState = nextState;
 }

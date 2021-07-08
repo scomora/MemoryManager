@@ -3,8 +3,8 @@
 
 #include <iostream>
 
-BestFitMemoryManager::BestFitMemoryManager()
-:   MemoryManager()
+BestFitMemoryManager::BestFitMemoryManager(size_t wordSize)
+:   MemoryManager(wordSize)
 {
 
 }
@@ -20,7 +20,7 @@ void* BestFitMemoryManager::alloc(size_t sizeInBytes)
     MemControlBlock* currBestFit {nullptr};
     MemControlBlock* freeBlockFromSplit {nullptr};
     ssize_t thisDiff;
-    size_t originalSize {sizeInBytes};
+    this->setMostRecentRequestSize(sizeInBytes);
 
     sizeInBytes += sizeof(MemControlBlock);
     sizeInBytes = this->alignBytes(sizeInBytes);
@@ -43,13 +43,22 @@ void* BestFitMemoryManager::alloc(size_t sizeInBytes)
            is at least the word size, split it into two blocks */
         if (currBestFit->getSize() - sizeInBytes >= this->getWordSize())
         {
-            freeBlockFromSplit = currBestFit->split(sizeInBytes);
-            this->mFreeList.push_back(freeBlockFromSplit);
+            freeBlockFromSplit = currBestFit->split(sizeInBytes, this->getWordSize());
+            this->mFreeList.push_front(freeBlockFromSplit);
         }
         
         this->mFreeList.remove(currBestFit);
         return currBestFit->getPayloadStartAddress();
     }
 
-    return 0;
+    /* get more memory */
+    this->handleOutOfMemory();
+
+    if (this->getState() == MemoryManager::State::OUT_OF_MEM)
+    {
+        return nullptr;
+    }
+
+    /* then try again */
+    return this->alloc(this->getMostRecentRequestSize());
 }

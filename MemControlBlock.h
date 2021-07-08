@@ -10,7 +10,7 @@ class MemControlBlock
         MemControlBlock(size_t size);
         void init(size_t size);
         MemControlBlock* getBlockFromAddress();
-        MemControlBlock* split(size_t numBytes);
+        MemControlBlock* split(size_t numBytes, size_t alignment);
         void* getPayloadStartAddress();
         void* getPayloadEndAddress();
         static MemControlBlock* getBlockFromAddress(void* address);
@@ -20,6 +20,7 @@ class MemControlBlock
         void setInUse();
         bool isFree();
         static constexpr size_t GET_SIZE();
+        static size_t roundUp(size_t num, size_t multiple);
 
     private:
         size_t mSize;

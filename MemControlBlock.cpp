@@ -59,7 +59,7 @@ void* MemControlBlock::getPayloadEndAddress()
  * return the address of the succeeding block in the split, to
  * be added to the free list
  **/
-MemControlBlock* MemControlBlock::split(size_t numBytes)
+MemControlBlock* MemControlBlock::split(size_t numBytes, size_t alignment)
 {
     size_t newPrecedingBlockSize;
     size_t succeedingBlockSize;
@@ -68,10 +68,11 @@ MemControlBlock* MemControlBlock::split(size_t numBytes)
 
     newPrecedingBlockSize = numBytes;
     succeedingBlockSize = this->getSize() - numBytes - sizeof(MemControlBlock);
+    succeedingBlockSize = this->roundUp(succeedingBlockSize, alignment);
 
     this->setSize(newPrecedingBlockSize);
 
-    succeedingBlockAddress = static_cast<char*>(this->getPayloadEndAddress()) + 1;
+    succeedingBlockAddress = static_cast<char*>(this->getPayloadEndAddress()) + alignment;
     succeedingMcb = reinterpret_cast<MemControlBlock*>(succeedingBlockAddress);
     succeedingMcb->init(succeedingBlockSize);
 
@@ -101,4 +102,16 @@ void MemControlBlock::setFree()
 void MemControlBlock::setInUse()
 {
     mFree = false;
+}
+
+size_t MemControlBlock::roundUp(size_t num, size_t multiple)
+{
+    size_t remainder = num % multiple;
+
+    if (!remainder)
+    {
+        return num;
+    }
+
+    return num + (multiple - remainder);
 }
