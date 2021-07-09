@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 
+#include "Logger.h"
 #include "MemControlBlock.h"
 #include "util.h"
 
@@ -25,7 +26,8 @@ class MemoryManager
         void initialize(size_t sizeInWords);
         void shutdown();
         virtual void* alloc(size_t sizeInBytes) = 0;
-        void free(void* address);
+        virtual void free(void* address) = 0;
+        void* realloc(void* address, size_t numBytes);
         int dumpMemoryMap(const std::string &fileName);
         void* getList();
         void* getBitMap();
@@ -39,17 +41,19 @@ class MemoryManager
         State mState;
         
         size_t alignBytes(size_t numBytes);
-        void handleOutOfMemory();
+        void handleOutOfMemory(size_t bytesNeeded);
         std::list<MemControlBlock*> mFreeList;
         size_t getMostRecentRequestSize();
         void setMostRecentRequestSize(size_t mostRecentRequestSize);
+        void log(std::string& message);
 
     private:
         void* mMemStart;
         size_t mWordSize;
         size_t mMostRecentRequestSize;
+        Logger mLogger;
 
-        static constexpr size_t INITIAL_HEAP_USER_SIZE_BYTES    = 65536UL;
+        static constexpr size_t INITIAL_HEAP_USER_SIZE_BYTES    = 32;
         static constexpr size_t INITIAL_HEAP_SIZE_BYTES         = INITIAL_HEAP_USER_SIZE_BYTES 
                                                                   + sizeof(MemControlBlock);
 

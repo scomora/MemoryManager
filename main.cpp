@@ -4,54 +4,70 @@
 #include "MemControlBlock.h"
 
 #include <iostream>
+#include <vector>
 
 bool testMemControlBlock();
-
-#define STR(x)  #x
-
-template<typename T>
-static constexpr void print_size(T varSize)
-{
-    std::cout << "sizeof(" << STR(T) << ") = " << sizeof(T) << std::endl;
-}
+void testRealloc();
 
 int main(int argc, char** argv)
 {
     UNUSED_VAR(argc);
     UNUSED_VAR(argv);
 
-    std::cout << "sizeof(int) = " << sizeof(int) << std::endl;
-    std::cout << "sizeof(void*) = " << sizeof(void*) << std::endl;
+    testRealloc();
 
     testMemControlBlock();
 
     return 0;
 }
 
-constexpr size_t PAYLOAD_SIZE = 4 * 1024;
+void testRealloc()
+{
+    BestFitMemoryManager mm;
+    char* byteArray;
+    constexpr size_t smallerSize = 8;
+    constexpr size_t biggerSize = 20;
+    size_t fillIdx;
+    char* biggerByteArray;
+
+    byteArray = reinterpret_cast<char*>(mm.alloc(smallerSize));
+
+    for (fillIdx = 0; fillIdx < smallerSize; fillIdx++)
+    {
+        byteArray[fillIdx] = static_cast<char>(fillIdx + 1);
+    }
+
+    biggerByteArray = reinterpret_cast<char*>(mm.realloc(byteArray, biggerSize));
+}
 
 bool testMemControlBlock()
 {
-    BestFitMemoryManager bfmm(PAYLOAD_SIZE);
+    BestFitMemoryManager bfmm;
     void* heapMem;
     MemControlBlock* mcb;
     size_t numAllocs {0};
+    void* heapAddresses[8192 * sizeof(void*)];
+    size_t putIdx{0};
+    size_t getIdx{0};
 
-    heapMem = bfmm.alloc(4);
+    int* num = reinterpret_cast<int*>(bfmm.alloc(sizeof(*num)));
+    *num = 0x3744;
+    std::cout << "alloced " << reinterpret_cast<void*>(*num) << std::endl;
+    bfmm.free(num);
 
     for (; ; numAllocs++)
     {
-        heapMem = reinterpret_cast<MemControlBlock*>(bfmm.alloc(PAYLOAD_SIZE));
+        heapMem = reinterpret_cast<MemControlBlock*>(bfmm.alloc(8));
 
         if (heapMem == nullptr)
         {
-            break;
+            bfmm.free(heapAddresses[getIdx++]);
+            continue;
         }
 
-        std::memset(heapMem, 0x37, PAYLOAD_SIZE);
+        std::memset(heapMem, 0x37, 8);
 
-        mcb->init(sizeof(MemControlBlock));
-        // std::cout << "got " << reinterpret_cast<void*>(mcb) << std::endl;
+        heapAddresses[putIdx++] = heapMem;
     }
     
     std::cout << "got " << numAllocs << " allocs before running out of mem" << std::endl;

@@ -22,18 +22,18 @@ MemoryManager::~MemoryManager()
 
 }
 
-void MemoryManager::handleOutOfMemory()
+void MemoryManager::handleOutOfMemory(size_t bytesNeeded)
 {
     MemControlBlock* resultingFreeBlock;
 
-    resultingFreeBlock = reinterpret_cast<MemControlBlock*>(sbrk(INITIAL_HEAP_SIZE_BYTES));
+    resultingFreeBlock = reinterpret_cast<MemControlBlock*>(sbrk(bytesNeeded));
     if (resultingFreeBlock == reinterpret_cast<void*>(-1))
     {
         this->setState(State::OUT_OF_MEM);
         return;
     }
 
-    resultingFreeBlock->init(INITIAL_HEAP_USER_SIZE_BYTES);
+    resultingFreeBlock->init(bytesNeeded - sizeof(MemControlBlock));
     this->mFreeList.push_front(resultingFreeBlock);
 }
 
@@ -45,6 +45,17 @@ void MemoryManager::initialize(size_t sizeInWords)
 void MemoryManager::shutdown()
 {
 
+}
+
+void* MemoryManager::realloc(void* address, size_t numBytes)
+{
+    void* newAddress;
+    size_t bytesToCopy;
+    
+    bytesToCopy = MemControlBlock::getBlockFromAddress(address)->getSize();
+    newAddress = this->alloc(numBytes);
+    std::memcpy(newAddress, address, numBytes);
+    this->free(address);
 }
 
 void MemoryManager::free(void* address)
@@ -106,4 +117,9 @@ MemoryManager::State MemoryManager::getState()
 void MemoryManager::setState(MemoryManager::State nextState)
 {
     mState = nextState;
+}
+
+void MemoryManager::log(std::string& message)
+{
+    mLogger.log(message);
 }
